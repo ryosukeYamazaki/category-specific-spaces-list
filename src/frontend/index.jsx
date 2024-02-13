@@ -8,7 +8,8 @@ import ForgeReconciler, {
   Row,
   Table,
   Text,
-  TextField
+  TextField,
+  User
 } from '@forge/react';
 import { view, invoke } from '@forge/bridge';
 
@@ -31,34 +32,55 @@ const App = () => {
   let productSpecSpaces = [], tempFilteredSpaces = [];
   const config = context?.extension.config || defaultConfig;
   const spaceCategory = config?.spaceCategory;
-  const spaceKeys = spaces.map((space) => {space.key});
+  const spaceKeys = spaces.map((space) => space.key);
+
   useEffect(() => {
     view.getContext().then(setContext);
   }, []);
   useEffect(() => {
-    invoke('getCategorySpecificSpaces', { spaceCategory: spaceCategory }).then(setSpaces);
+    invoke('getCategorySpecificSpaces', { spaceCategory: spaceCategory })
+      .then(setSpaces);
   }, spaceCategory);
-  /* useEffect(() => {
-   *   invoke('getSpaceOwners', { spaces: spaces }).then(setSpaces);
-   * }, spaceKeys); */
-
+  useEffect(() => {
+    if(spaces.length > 0) {
+      invoke('getSpaceOwners', { spaces: spaces })
+        .then(setSpaces);
+    }
+  }, [spaces.length]);
   console.log(`spaces: `);
   console.log(spaces);
+  console.log(`ownerIdsOfSpace: `);
+  console.log(spaces.map((space) => space.ownerIdsOfSpace));
 
   return (
     <Table>
       <Head>
         <Cell>
-          <Text>Space </Text>
+          <Text>Image </Text>
+        </Cell>
+        <Cell>
+          <Text>Link </Text>
+        </Cell>
+        <Cell>
+          <Text>Owner </Text>
         </Cell>
       </Head>
       {spaces && spaces.map(space => (
         <Row>
           <Cell>
-            <Image src={`https://jira-freee.atlassian.net/wiki/${space.icon.path}`} size="small" />
+            <Image src={`https://jira-freee.atlassian.net/wiki${space.icon.path}`} size="xsmall" />
+          </Cell>
+          <Cell>
             <Link href={`https://jira-freee.atlassian.net/wiki/spaces/${space.key}`}>
               {space.name}
             </Link>
+          </Cell>
+          <Cell>
+            {space.ownerIdsOfSpace && space.ownerIdsOfSpace.length > 0
+              ? space.ownerIdsOfSpace.map((id) => (
+                <User accountId={id} />
+              ))
+              : <Text>Owner property is TBD</Text>}
           </Cell>
         </Row>
       ))}

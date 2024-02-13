@@ -51,7 +51,7 @@ async function getConfluenceSpaces(next){
 }
 
 async function getAllConfluenceSpaces() {
-  console.log(`getAllConfluenceSpaces begin`);
+
   let allSpaces = [];
   let next, spaces = [];
   ({next, spaces} = await getConfluenceSpaces());
@@ -63,7 +63,6 @@ async function getAllConfluenceSpaces() {
       ...spaces
     ];
   }
-  console.log(`getAllConfluenceSpaces end`);
   return allSpaces;
 }
 
@@ -74,10 +73,49 @@ resolver.define('getCategorySpecificSpaces', async ({payload, context}) => {
   return categorisedSpaces;
 });
 
-// PagePropertiesでスペースオーナーがあれば取得してくる。
-resolver.define('getSpaceOwners', async({payload, context}) => {
-  const spaces = payload.spaces;
 
+async function getSpaceHomePageBody(space) {
+  const spaceHomePageId = space.homepage.id;
+  const response = await api.asUser().requestConfluence(route`/wiki/api/v2/pages/${spaceHomePageId}?body-format=storage`, {
+    headers: {
+      'Accept': 'application/json'
+    }
+  });
+
+  console.log(`Response: ${response.status} ${response.statusText}`);
+  const responsJson = await response.json();
+  console.log(responsJson);
+  const homePageBody = responsJson.body.storage.value;
+  return homePageBody;
+}
+
+function getAccountIds(body){
+  var pattern = /<ac:link><ri:user ri:account-id="([^"]*)" \/><\/ac:link>/g;
+  var match;
+  var accountIds = [];
+
+  while ((match = pattern.exec(body)) !== null) {
+    accountIds.push(match[1]);
+  }
+
+  console.log(accountIds);
+  return accountIds;
+}
+
+// PagePropertiesでスペースオーナーがあれば取得してくる。
+resolver.define('getSpaceOwners', async ({payload, context}) => {
+  console.log(`getSpaceOwners begin`);
+  let spaces = payload.spaces;
+  console.log('spaces');
+  console.log(spaces);
+
+  for(let space of spaces) {
+    // アカウントリストを取ってきているだけなので、多分オーナーというくらいでしかない。
+    const ownerIdsOfSpace = getAccountIds((await getSpaceHomePageBody(space)));
+    space.ownerIdsOfSpace = ownerIdsOfSpace;
+  }
+
+  console.log(`getSpaceOwners end`);
   return spaces;
 })
 

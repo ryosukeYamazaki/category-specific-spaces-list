@@ -18,5 +18,9 @@ app:
 permissions:
   scopes:
     - read:space:confluence
+    - read:page:confluence
     - read:confluence-space.summary
     - read:confluence-content.all
+  external:
+    images:
+      - 'https://jira-freee.atlassian.net/wiki/*'
