@@ -1,0 +1,22 @@
+modules:
+  macro:
+    - key: category-specific-spaces-list-hello-world-macro
+      resource: main
+      render: native
+      resolver:
+        function: resolver
+      title: category-specific-spaces-list
+      config: true
+  function:
+    - key: resolver
+      handler: index.handler
+resources:
+  - key: main
+    path: src/frontend/index.jsx
+app:
+  id: ari:cloud:ecosystem::app/6df6c215-1a1f-43c3-9673-4d66e71239a4
+permissions:
+  scopes:
+    - read:space:confluence
+    - read:confluence-space.summary
+    - read:confluence-content.all
